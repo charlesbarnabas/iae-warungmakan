@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Daftar Makanan</title>
+  <title>Admin - Daftar Minuman</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -25,7 +25,7 @@
     </aside>
 
     <main class="flex-1 p-8 overflow-y-auto">
-      <h1 class="text-2xl font-bold mb-4 text-green-700">Makanan</h1>
+      <h1 class="text-2xl font-bold mb-4 text-green-700">Minuman</h1>
 
       <!-- Search Bar dengan Icon -->
       <div class="mb-4 relative w-full md:w-1/2">
@@ -37,7 +37,7 @@
         <input
           type="text"
           id="search-input"
-          placeholder="Cari Makanan..."
+          placeholder="Cari Minuman..."
           class="pl-10 pr-4 py-2 rounded border border-gray-300 w-full focus:outline-none focus:ring-2 focus:ring-green-400"
         />
       </div>
@@ -46,7 +46,7 @@
         <!-- Menu cards akan di-render oleh JavaScript -->
       </div>
 
-      <a href="add-menu.html" class="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Tambah Makanan</a>
+      <a href="add-menu.html" class="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Tambah Minuman</a>
     </main>
   </div>
 
@@ -106,7 +106,7 @@
         const response = await fetch('http://127.0.0.1:5000/menus');
         const data = await response.json();
         // Filter hanya menu dengan kategori "Makanan"
-        allMenus = data.filter(menu => menu.category === "makanan");
+        allMenus = data.filter(menu => menu.category === "minuman");
         renderMenus(allMenus);
       } catch (error) {
         console.error('Gagal mengambil data menu:', error);

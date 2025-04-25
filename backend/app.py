@@ -40,6 +40,7 @@ def get_menus():
             'id': menu.id,
             'nama': menu.nama,
             'harga': menu.harga,
+            'category': menu.category,
             'foto': foto_url
         })
     return jsonify(result)
@@ -50,21 +51,24 @@ def get_menu(id):
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
+    foto_url = url_for('static', filename=menu.foto) if menu.foto else url_for('static', filename='default.png')
     return jsonify({
         'id': menu.id,
         'nama': menu.nama,
         'harga': menu.harga,
-        'foto': menu.foto
+        'category': menu.category,
+        'foto': foto_url
     })
 
 @app.route('/menus', methods=['POST'])
 def create_menu():
     nama = request.form.get('nama')
     harga = request.form.get('harga')
+    category = request.form.get('category')
     foto = request.files.get('foto')
 
-    if not nama or not harga:
-        return jsonify({'message': 'Nama dan harga wajib diisi'}), 400
+    if not nama or not harga or not category:
+        return jsonify({'message': 'Nama, harga, dan kategori wajib diisi'}), 400
 
     filename = 'default.png'
     if foto:
@@ -76,7 +80,7 @@ def create_menu():
             print(f"Error converting image to PNG: {e}")
             filename = 'default.png'
 
-    new_menu = Menu(nama=nama, harga=int(harga), foto=filename)
+    new_menu = Menu(nama=nama, harga=int(harga), category=category, foto=filename)
     db.session.add(new_menu)
     db.session.commit()
 
@@ -88,19 +92,32 @@ def update_menu(id):
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
-    # Mengambil data dari form (FormData)
     nama = request.form.get('nama')
     harga = request.form.get('harga')
-    foto = request.files.get('foto')  # Foto baru jika ada
+    category = request.form.get('category')
+    foto = request.files.get('foto')
+
+    if not nama or not harga or not category:
+        return jsonify({'message': 'Nama, harga, dan kategori wajib diisi'}), 400
 
     menu.nama = nama
     menu.harga = int(harga)
+    menu.category = category
 
-    # Jika ada foto baru yang di-upload
     if foto:
-        filename = secure_filename(foto.filename)
-        foto.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        menu.foto = filename
+        # Hapus foto lama
+        if menu.foto:
+            old_path = os.path.join(app.config['UPLOAD_FOLDER'], menu.foto)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        # Buat nama file baru dari nama menu
+        ext = os.path.splitext(foto.filename)[1]  # ambil ekstensi .jpg / .png
+        new_filename = secure_filename(nama.replace(" ", "_") + ext)
+
+        # Simpan file baru
+        foto.save(os.path.join(app.config['UPLOAD_FOLDER'], new_filename))
+        menu.foto = new_filename
 
     db.session.commit()
     return jsonify({'message': 'Menu berhasil diperbarui'})
@@ -111,9 +128,18 @@ def delete_menu(id):
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
+    if menu.foto and menu.foto != 'default.png':
+        try:
+            foto_path = os.path.join(app.config['UPLOAD_FOLDER'], menu.foto)
+            if os.path.exists(foto_path):
+                os.remove(foto_path)
+        except Exception as e:
+            print(f"Error menghapus foto: {e}")
+
     db.session.delete(menu)
     db.session.commit()
-    return jsonify({'message': 'Menu berhasil dihapus'})
+
+    return jsonify({'message': 'Menu berhasil dihapus dan foto terkait telah dihapus'}), 200
 
 # ================================
 #     CUSTOMER & ORDERS SERVICE
