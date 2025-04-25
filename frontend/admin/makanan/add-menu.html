@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Tambah Menu Makanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../../../css/style.css">
+</head>
+<body class="bg-green-100 h-screen overflow-hidden">
+    <div class="flex h-full">
+        <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
+            <div>
+                <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+                <a href="index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
+                <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
+            </div>
+            <div class="text-center text-sm">Admin</div>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <h1 class="text-2xl font-bold mb-4 text-green-700">Tambah Menu Makanan</h1>
+            <form id="add-menu-form" class="bg-white shadow-md rounded-md p-6 space-y-4" enctype="multipart/form-data">
+                <div>
+                    <label for="nama" class="block text-gray-700 text-sm font-bold mb-2">Nama Makanan:</label>
+                    <input type="text" id="nama" name="nama" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <div id="nama-error" class="text-red-500 text-xs italic" style="display: none;"></div>
+                </div>
+                <div>
+                    <label for="harga" class="block text-gray-700 text-sm font-bold mb-2">Harga:</label>
+                    <input type="number" id="harga" name="harga" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <div id="harga-error" class="text-red-500 text-xs italic" style="display: none;"></div>
+                </div>
+                <div>
+                    <label for="foto" class="block text-gray-700 text-sm font-bold mb-2">Foto Makanan:</label>
+                    <input type="file" id="foto" name="foto" accept="image/png, image/jpeg" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <div id="foto-error" class="text-red-500 text-xs italic" style="display: none;"></div>
+                </div>
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Tambah Menu</button>
+                <a href="index.html" class="inline-block bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Batal</a>
+            </form>
+        </main>
+    </div>
+    <script>
+        const form = document.getElementById('add-menu-form');
+        const namaInput = document.getElementById('nama');
+        const hargaInput = document.getElementById('harga');
+        const fotoInput = document.getElementById('foto');
+        const namaError = document.getElementById('nama-error');
+        const hargaError = document.getElementById('harga-error');
+        const fotoError = document.getElementById('foto-error');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            let isFormValid = true;
+
+            if (!namaInput.value.trim()) {
+                namaError.textContent = 'Nama makanan wajib diisi.';
+                namaError.style.display = 'block';
+                isFormValid = false;
+            } else {
+                namaError.style.display = 'none';
+            }
+
+            if (!hargaInput.value.trim()) {
+                hargaError.textContent = 'Harga makanan wajib diisi.';
+                hargaError.style.display = 'block';
+                isFormValid = false;
+            } else if (isNaN(hargaInput.value) || Number(hargaInput.value) <= 0) {
+                hargaError.textContent = 'Harga harus berupa angka positif.';
+                hargaError.style.display = 'block';
+                isFormValid = false;
+            } else {
+                hargaError.style.display = 'none';
+            }
+
+            if (!fotoInput.files || fotoInput.files.length === 0) {
+                fotoError.textContent = 'Foto makanan wajib diunggah.';
+                fotoError.style.display = 'block';
+                isFormValid = false;
+            } else if (fotoInput.files[0].type !== 'image/png' && fotoInput.files[0].type !== 'image/jpeg') {
+                fotoError.textContent = 'Format foto harus PNG atau JPEG.';
+                fotoError.style.display = 'block';
+                isFormValid = false;
+            } else {
+                fotoError.style.display = 'none';
+            }
+
+            if (!isFormValid) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('nama', namaInput.value);
+            formData.append('harga', hargaInput.value);
+            formData.append('foto', fotoInput.files[0]);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/menus', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message);
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Gagal menambahkan menu: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Terjadi kesalahan:', error);
+                alert('Terjadi kesalahan saat menambahkan menu.');
+            }
+        });
+    </script>
+</body>
+</html>

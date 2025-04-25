@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Edit Makanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-green-100 h-screen overflow-hidden">
+    <div class="flex h-full">
+        <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
+            <div>
+                <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+                <a href="index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
+                <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
+            </div>
+            <div class="text-center text-sm">Admin</div>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <h1 class="text-2xl font-bold mb-4 text-green-700">Edit Makanan</h1>
+            <form id="edit-menu-form" class="bg-white shadow-md rounded-md p-6">
+                <input type="hidden" id="id" name="id">
+                <div class="mb-4">
+                    <label for="nama" class="block text-gray-700 text-sm font-bold mb-2">Nama Makanan:</label>
+                    <input type="text" id="nama" name="nama" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label for="harga" class="block text-gray-700 text-sm font-bold mb-2">Harga:</label>
+                    <input type="number" id="harga" name="harga" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label for="foto" class="block text-gray-700 text-sm font-bold mb-2">Foto:</label>
+                    <img id="preview-foto" src="" alt="Preview Foto" class="w-32 h-32 object-cover rounded-md mb-2">
+                    <p class="text-gray-500 text-xs italic">Foto akan tetap sama jika tidak diubah.</p>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Simpan Perubahan</button>
+                    <button type="button" onclick="deleteMenu()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Hapus Makanan</button>
+                    <a href="index.html" class="inline-block text-green-500 hover:text-green-700">Batal</a>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        const editMenuForm = document.getElementById('edit-menu-form');
+        const menuIdInput = document.getElementById('id');
+        const namaInput = document.getElementById('nama');
+        const hargaInput = document.getElementById('harga');
+        const previewFoto = document.getElementById('preview-foto');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const menuId = urlParams.get('id');
+
+        async function fetchMenuDetails(id) {
+            try {
+                const response = await fetch(`/menus/${id}`);
+                if (!response.ok) {
+                    window.location.href = 'index.html'; // Redirect jika menu tidak ditemukan
+                    return;
+                }
+                const data = await response.json();
+                menuIdInput.value = data.id;
+                namaInput.value = data.nama;
+                hargaInput.value = data.harga;
+                previewFoto.src = `/public/${data.foto}`;
+            } catch (error) {
+                console.error('Gagal mengambil detail menu:', error);
+                alert('Gagal mengambil detail menu.');
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function updateMenu(event) {
+            event.preventDefault();
+
+            const id = menuIdInput.value;
+            const data = {
+                nama: namaInput.value,
+                harga: parseInt(hargaInput.value)
+            };
+
+            try {
+                const response = await fetch(`/menus/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const responseData = await response.json();
+                    alert(responseData.message);
+                    window.location.href = 'index.html';
+                } else {
+                    const errorData = await response.json();
+                    alert(`Gagal memperbarui menu: ${errorData.message || 'Terjadi kesalahan'}`);
+                }
+            } catch (error) {
+                console.error('Gagal memperbarui menu:', error);
+                alert('Gagal memperbarui menu.');
+            }
+        }
+
+        async function deleteMenu() {
+            if (confirm('Apakah Anda yakin ingin menghapus menu ini?')) {
+                const id = menuIdInput.value;
+                try {
+                    const response = await fetch(`/menus/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Gagal menghapus menu:', error);
+                    alert('Gagal menghapus menu.');
+                }
+            }
+        }
+
+        if (menuId) {
+            fetchMenuDetails(menuId);
+        } else {
+            window.location.href = 'index.html'; // Redirect jika tidak ada ID
+        }
+
+        editMenuForm.addEventListener('submit', updateMenu);
+    </script>
+</body>
+</html>

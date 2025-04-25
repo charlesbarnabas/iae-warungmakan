@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Daftar Makanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../../../css/style.css">
+</head>
+<body class="bg-green-100 h-screen overflow-hidden">
+    <div class="flex h-full">
+        <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
+            <div>
+                <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+                <a href="index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
+                <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
+            </div>
+            <div class="text-center text-sm">Admin</div>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <h1 class="text-2xl font-bold mb-4 text-green-700">Makanan</h1>
+            <div id="menu-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <p>Memuat daftar makanan...</p>
+            </div>
+            <a href="add-menu.html" class="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Tambah Makanan</a>
+        </main>
+    </div>
+    <script>
+    const menuList = document.getElementById('menu-list');
+
+    async function fetchMenus() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/menus');
+            const data = await response.json();
+            console.log("Data dari API:", data);
+
+            if (data.length === 0) {
+                menuList.innerHTML = '<p>Belum ada menu. Silakan tambahkan menu.</p>';
+                return;
+            }
+
+            menuList.innerHTML = '';
+            data.forEach(menu => {
+                const menuCard = document.createElement('div');
+                menuCard.className = 'bg-white shadow-md rounded-md p-4';
+                let fotoUrl = '/backend/public/default.png'; // Set default
+                if (menu.foto) {
+                    fotoUrl = '/backend/public/' + menu.foto; // Construct the URL
+                }
+                menuCard.innerHTML = `
+                    <img src="${fotoUrl}" alt="${menu.nama}" class="w-full h-32 object-cover rounded-md mb-2">
+                    <h3 class="text-lg font-semibold text-green-600">${menu.nama}</h3>
+                    <p class="text-gray-700">Rp ${menu.harga}</p>
+                    <div class="mt-2">
+                        <a href="edit-menu.html?id=${menu.id}" class="inline-block bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded text-sm mr-2">Edit</a>
+                        <button onclick="deleteMenu(${menu.id})" class="inline-block bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">Hapus</button>
+                    </div>
+                `;
+                menuList.appendChild(menuCard);
+            });
+        } catch (error) {
+            console.error('Gagal mengambil data menu:', error);
+            menuList.innerHTML = '<p class="text-red-500">Gagal memuat daftar menu.</p>';
+        }
+    }
+
+    async function deleteMenu(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus menu ini?')) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/menus/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                alert(data.message);
+                fetchMenus();
+            } catch (error) {
+                console.error('Gagal menghapus menu:', error);
+                alert('Gagal menghapus menu.');
+            }
+        }
+    }
+
+    fetchMenus();
+    </script>
+</body>
+</html>
