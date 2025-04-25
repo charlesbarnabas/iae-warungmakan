@@ -1,14 +1,14 @@
 import os
 from werkzeug.utils import secure_filename
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from PIL import Image
-from models import db, Customer, Menu, Order, OrderItem # Import dari models.py
+from models import db, Customer, Menu, Order, OrderItem  # Import dari models.py
 
-
-app = Flask(__name__)
+# --- Setup Flask ---
+app = Flask(__name__, static_folder='public')   
 CORS(app)
 
 # Konfigurasi Database
@@ -16,12 +16,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Konfigurasi folder upload
-UPLOAD_FOLDER = 'backend/public'
+UPLOAD_FOLDER = 'public'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-db.init_app(app) # Inisialisasi di sini
+# Inisialisasi database
+db.init_app(app)
 with app.app_context():
     db.create_all()
 
@@ -34,11 +35,12 @@ def get_menus():
     menus = Menu.query.all()
     result = []
     for menu in menus:
+        foto_url = url_for('static', filename=menu.foto) if menu.foto else url_for('static', filename='default.png')
         result.append({
             'id': menu.id,
             'nama': menu.nama,
             'harga': menu.harga,
-            'foto': menu.foto if menu.foto else '/public/default.png'
+            'foto': foto_url
         })
     return jsonify(result)
 
@@ -90,10 +92,6 @@ def delete_menu(id):
     db.session.delete(menu)
     db.session.commit()
     return jsonify({'message': 'Menu berhasil dihapus'})
-
-@app.route('/backend/public/<filename>')
-def get_foto(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # ================================
 #    CUSTOMER & ORDERS SERVICE

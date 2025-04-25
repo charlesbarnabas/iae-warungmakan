@@ -21,22 +21,42 @@
         <main class="flex-1 p-8 overflow-y-auto">
             <h1 class="text-2xl font-bold mb-4 text-green-700">Makanan</h1>
             <div id="menu-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                <p>Memuat daftar makanan...</p>
+                <!-- Loading skeleton akan di-inject dari script -->
             </div>
             <a href="add-menu.html" class="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Tambah Makanan</a>
         </main>
     </div>
+
     <script>
     const menuList = document.getElementById('menu-list');
 
+    function showLoadingSkeleton() {
+        menuList.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const skeletonCard = document.createElement('div');
+            skeletonCard.className = 'bg-white p-4 rounded-md shadow-md animate-pulse';
+            skeletonCard.innerHTML = `
+                <div class="bg-gray-300 h-32 w-full rounded mb-4"></div>
+                <div class="h-4 bg-gray-300 rounded mb-2"></div>
+                <div class="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
+                <div class="flex space-x-2">
+                    <div class="h-6 bg-gray-300 rounded w-16"></div>
+                    <div class="h-6 bg-gray-300 rounded w-16"></div>
+                </div>
+            `;
+            menuList.appendChild(skeletonCard);
+        }
+    }
+
     async function fetchMenus() {
+        showLoadingSkeleton(); // Tampilkan loading saat fetch
         try {
             const response = await fetch('http://127.0.0.1:5000/menus');
             const data = await response.json();
             console.log("Data dari API:", data);
 
             if (data.length === 0) {
-                menuList.innerHTML = '<p>Belum ada menu. Silakan tambahkan menu.</p>';
+                menuList.innerHTML = '<p class="text-gray-600">Belum ada menu. Silakan tambahkan menu.</p>';
                 return;
             }
 
@@ -44,14 +64,11 @@
             data.forEach(menu => {
                 const menuCard = document.createElement('div');
                 menuCard.className = 'bg-white shadow-md rounded-md p-4';
-                let fotoUrl = '/backend/public/default.png'; // Set default
-                if (menu.foto) {
-                    fotoUrl = '/backend/public/' + menu.foto; // Construct the URL
-                }
+
                 menuCard.innerHTML = `
-                    <img src="${fotoUrl}" alt="${menu.nama}" class="w-full h-32 object-cover rounded-md mb-2">
+                    <img src="http://127.0.0.1:5000${menu.foto}" alt="${menu.nama}" class="w-full h-32 object-cover rounded-md mb-2">
                     <h3 class="text-lg font-semibold text-green-600">${menu.nama}</h3>
-                    <p class="text-gray-700">Rp ${menu.harga}</p>
+                    <p class="text-gray-700">Rp ${menu.harga.toLocaleString('id-ID')}</p>
                     <div class="mt-2">
                         <a href="edit-menu.html?id=${menu.id}" class="inline-block bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded text-sm mr-2">Edit</a>
                         <button onclick="deleteMenu(${menu.id})" class="inline-block bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">Hapus</button>
@@ -73,7 +90,7 @@
                 });
                 const data = await response.json();
                 alert(data.message);
-                fetchMenus();
+                fetchMenus(); // Refresh setelah delete
             } catch (error) {
                 console.error('Gagal menghapus menu:', error);
                 alert('Gagal menghapus menu.');
@@ -81,6 +98,7 @@
         }
     }
 
+    // Load data saat halaman dibuka
     fetchMenus();
     </script>
 </body>
