@@ -5,10 +5,10 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from PIL import Image
-from models import db, Customer, Menu, Order, OrderItem  # Import dari models.py
+from models import db, Customer, Menu, Order, OrderItem
 
-# --- Setup Flask ---
-app = Flask(__name__, static_folder='public')   
+# Setup Flask
+app = Flask(__name__, static_folder='public')
 CORS(app)
 
 # Konfigurasi Database
@@ -44,6 +44,19 @@ def get_menus():
         })
     return jsonify(result)
 
+@app.route('/menus/<int:id>', methods=['GET'])
+def get_menu(id):
+    menu = Menu.query.get(id)
+    if not menu:
+        return jsonify({'message': 'Menu tidak ditemukan'}), 404
+
+    return jsonify({
+        'id': menu.id,
+        'nama': menu.nama,
+        'harga': menu.harga,
+        'foto': menu.foto
+    })
+
 @app.route('/menus', methods=['POST'])
 def create_menu():
     nama = request.form.get('nama')
@@ -75,11 +88,20 @@ def update_menu(id):
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
-    data = request.json
-    menu.nama = data['nama']
-    menu.harga = data['harga']
-    if 'foto' in data:
-        menu.foto = data['foto']
+    # Mengambil data dari form (FormData)
+    nama = request.form.get('nama')
+    harga = request.form.get('harga')
+    foto = request.files.get('foto')  # Foto baru jika ada
+
+    menu.nama = nama
+    menu.harga = int(harga)
+
+    # Jika ada foto baru yang di-upload
+    if foto:
+        filename = secure_filename(foto.filename)
+        foto.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        menu.foto = filename
+
     db.session.commit()
     return jsonify({'message': 'Menu berhasil diperbarui'})
 
@@ -94,7 +116,7 @@ def delete_menu(id):
     return jsonify({'message': 'Menu berhasil dihapus'})
 
 # ================================
-#    CUSTOMER & ORDERS SERVICE
+#     CUSTOMER & ORDERS SERVICE
 # ================================
 
 @app.route('/customers', methods=['POST'])

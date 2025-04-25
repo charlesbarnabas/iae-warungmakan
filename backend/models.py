@@ -13,7 +13,7 @@ class Menu(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nama = db.Column(db.String(180), nullable=False)
     harga = db.Column(db.Integer, nullable=False)
-    foto = db.Column(db.String(255), nullable=True)  # path file/foto menu
+    foto = db.Column(db.String(255), nullable=True) 
 
 class Order(db.Model):
     __tablename__ = 'orders'
