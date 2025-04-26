@@ -1,2 +1,4 @@
-Flask
-Flask-Cors
+Flask==2.2.5
+Flask-Cors==3.0.10
+Flask-SQLAlchemy==3.0.3
+Pillow==9.5.0

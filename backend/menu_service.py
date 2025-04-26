@@ -3,9 +3,8 @@ from werkzeug.utils import secure_filename
 from flask import Flask, request, jsonify, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 from PIL import Image
-from models import db, Customer, Menu, Order, OrderItem
+from models import db, Menu, Order, OrderItem, Customer
 
 # Setup Flask
 app = Flask(__name__, static_folder='public')
@@ -47,7 +46,7 @@ def get_menus():
 
 @app.route('/menus/<int:id>', methods=['GET'])
 def get_menu(id):
-    menu = Menu.query.get(id)
+    menu = db.session.get(Menu, id)
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
@@ -88,7 +87,7 @@ def create_menu():
 
 @app.route('/menus/<int:id>', methods=['PUT'])
 def update_menu(id):
-    menu = Menu.query.get(id)
+    menu = db.session.get(Menu, id)
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
@@ -124,7 +123,7 @@ def update_menu(id):
 
 @app.route('/menus/<int:id>', methods=['DELETE'])
 def delete_menu(id):
-    menu = Menu.query.get(id)
+    menu = db.session.get(Menu, id)
     if not menu:
         return jsonify({'message': 'Menu tidak ditemukan'}), 404
 
@@ -142,87 +141,28 @@ def delete_menu(id):
     return jsonify({'message': 'Menu berhasil dihapus dan foto terkait telah dihapus'}), 200
 
 # ================================
-#     CUSTOMER & ORDERS SERVICE
+#        ORDER DETAILS VIEW
 # ================================
-
-@app.route('/customers', methods=['POST'])
-def create_customer():
-    data = request.json
-    new_customer = Customer(
-        nama=data['nama'],
-        no_telp=data['no_telp']
-    )
-    db.session.add(new_customer)
-    db.session.commit()
-    return jsonify({'id': new_customer.id}), 201
-
-@app.route('/orders', methods=['POST'])
-def create_order():
-    data = request.json
-    customer_id = data['customer_id']
-    order_items = data['order_items']
-    metode_pembayaran = data['metode_pembayaran']
-    tanggal_pembelian = datetime.strptime(data['tanggal_pembelian'], '%Y-%m-%d').date()
-
-    total_harga = 0
-    for item in order_items:
-        menu = Menu.query.get(item['menu_id'])
-        total_harga += menu.harga * item['quantity']
-
-    new_order = Order(
-        customer_id=customer_id,
-        total_harga=total_harga,
-        metode_pembayaran=metode_pembayaran,
-        tanggal_pembelian=tanggal_pembelian
-    )
-    db.session.add(new_order)
-    db.session.commit()
-
-    for item in order_items:
-        order_item = OrderItem(
-            order_id=new_order.id,
-            menu_id=item['menu_id'],
-            quantity=item['quantity']
-        )
-        db.session.add(order_item)
-    db.session.commit()
-
-    return jsonify({'message': 'Order berhasil dibuat', 'order_id': new_order.id}), 201
-
-@app.route('/orders/<int:id>', methods=['GET'])
-def get_order(id):
-    order = Order.query.get(id)
-    if not order:
-        return jsonify({'message': 'Order tidak ditemukan'}), 404
-
-    items = []
-    for item in order.order_items:
-        items.append({
-            'nama_menu': item.menu.nama,
-            'quantity': item.quantity,
-            'harga_satuan': item.menu.harga
-        })
-
-    return jsonify({
-        'nama_customer': order.customer.nama,
-        'no_telp': order.customer.no_telp,
-        'total_harga': order.total_harga,
-        'metode_pembayaran': order.metode_pembayaran,
-        'tanggal_pembelian': order.tanggal_pembelian.strftime('%Y-%m-%d'),
-        'items': items
-    })
 
 @app.route('/orders', methods=['GET'])
 def get_all_orders():
-    orders = Order.query.all()
+    orders = db.session.query(Order).all()
     result = []
     for order in orders:
+        items = []
+        for item in order.order_items:
+            items.append({
+                'nama_menu': item.menu.nama,
+                'quantity': item.quantity,
+                'harga_satuan': item.menu.harga
+            })
         result.append({
             'id': order.id,
             'nama_customer': order.customer.nama,
             'total_harga': order.total_harga,
             'metode_pembayaran': order.metode_pembayaran,
-            'tanggal_pembelian': order.tanggal_pembelian.strftime('%Y-%m-%d')
+            'tanggal_pembelian': order.tanggal_pembelian.strftime('%Y-%m-%d'),
+            'items': items
         })
     return jsonify(result)
 

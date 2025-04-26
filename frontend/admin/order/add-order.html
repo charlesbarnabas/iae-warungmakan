@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Add Order</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-green-100 h-screen overflow-auto">
+  <div class="flex h-full min-h-screen">
+    <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
+      <div>
+        <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+        <a href="../makanan/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
+        <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
+        <a href="order-details.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Order Details</a>
+        <a href="add-order.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Add Order</a>
+      </div>
+      <div class="text-center text-sm">Admin</div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+      <h1 class="text-2xl font-bold mb-4 text-green-700">Add New Order</h1>
+
+      <form id="order-form" class="bg-white p-6 rounded shadow-md max-w-3xl">
+        <div class="mb-4">
+          <label for="customer-name" class="block font-semibold mb-2">Nama Customer:</label>
+          <input type="text" id="customer-name" name="customer-name" class="border border-gray-300 rounded px-3 py-2 w-full" required />
+        </div>
+
+        <div class="mb-4">
+          <label for="customer-phone" class="block font-semibold mb-2">No Telp:</label>
+          <input type="text" id="customer-phone" name="customer-phone" class="border border-gray-300 rounded px-3 py-2 w-full" required />
+        </div>
+
+        <div class="mb-4">
+          <label class="block font-semibold mb-2">Pilih Menu dan Jumlah:</label>
+          <div id="menu-items" class="space-y-4 max-h-64 overflow-y-auto border border-gray-300 rounded p-4 bg-gray-50"></div>
+        </div>
+
+        <div class="mb-4">
+          <label for="payment-method" class="block font-semibold mb-2">Metode Pembayaran:</label>
+          <select id="payment-method" name="payment-method" class="border border-gray-300 rounded px-3 py-2 w-full" required>
+            <option value="">Pilih Metode Pembayaran</option>
+            <option value="Cash">Cash</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="E-Wallet">E-Wallet</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="purchase-date" class="block font-semibold mb-2">Tanggal Pembelian:</label>
+          <input type="date" id="purchase-date" name="purchase-date" class="border border-gray-300 rounded px-3 py-2 w-full" required />
+        </div>
+
+        <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Submit Order</button>
+      </form>
+
+      <div id="message" class="mt-4 font-semibold"></div>
+    </main>
+  </div>
+
+  <script>
+    const menuItemsDiv = document.getElementById('menu-items');
+    const orderForm = document.getElementById('order-form');
+    const messageDiv = document.getElementById('message');
+
+    let menus = [];
+
+    // Fetch menu items from menu service (port 5000)
+    async function fetchMenus() {
+      try {
+        const response = await fetch('http://localhost:5000/menus');
+        if (!response.ok) {
+          throw new Error('Gagal memuat menu');
+        }
+        const data = await response.json();
+        menus = data;
+        renderMenuItems();
+      } catch (error) {
+        menuItemsDiv.innerHTML = '<p class="text-red-500">Gagal memuat menu.</p>';
+      }
+    }
+
+    // Render menu items with quantity inputs
+    function renderMenuItems() {
+      menuItemsDiv.innerHTML = '';
+      menus.forEach(menu => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center space-x-4';
+
+        const label = document.createElement('label');
+        label.textContent = `${menu.nama} (Rp ${menu.harga.toLocaleString('id-ID')})`;
+        label.className = 'flex-1';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = 0;
+        input.value = 0;
+        input.className = 'border border-gray-300 rounded px-2 py-1 w-20';
+        input.dataset.menuId = menu.id;
+
+        div.appendChild(label);
+        div.appendChild(input);
+        menuItemsDiv.appendChild(div);
+      });
+    }
+
+    // Submit order form
+    orderForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      messageDiv.textContent = '';
+
+      const customerName = document.getElementById('customer-name').value.trim();
+      const customerPhone = document.getElementById('customer-phone').value.trim();
+      const paymentMethod = document.getElementById('payment-method').value;
+      const purchaseDate = document.getElementById('purchase-date').value;
+
+      if (!customerName || !customerPhone || !paymentMethod || !purchaseDate) {
+        messageDiv.textContent = 'Semua field wajib diisi.';
+        messageDiv.className = 'mt-4 font-semibold text-red-600';
+        return;
+      }
+
+      // Collect order items with quantity > 0
+      const orderItems = [];
+      const quantityInputs = menuItemsDiv.querySelectorAll('input[type="number"]');
+      quantityInputs.forEach(input => {
+        const quantity = parseInt(input.value);
+        if (quantity > 0) {
+          orderItems.push({
+            menu_id: parseInt(input.dataset.menuId),
+            quantity: quantity
+          });
+        }
+      });
+
+      if (orderItems.length === 0) {
+        messageDiv.textContent = 'Pilih minimal satu menu dengan jumlah lebih dari 0.';
+        messageDiv.className = 'mt-4 font-semibold text-red-600';
+        return;
+      }
+
+      try {
+        // First create customer
+        const customerResponse = await fetch('http://localhost:5001/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nama: customerName,
+            no_telp: customerPhone
+          })
+        });
+
+        if (!customerResponse.ok) {
+          throw new Error('Gagal membuat customer');
+        }
+
+        const customerData = await customerResponse.json();
+        const customerId = customerData.id;
+
+        // Then create order
+        const orderResponse = await fetch('http://localhost:5001/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_id: customerId,
+            order_items: orderItems,
+            metode_pembayaran: paymentMethod,
+            tanggal_pembelian: purchaseDate
+          })
+        });
+
+        if (!orderResponse.ok) {
+          throw new Error('Gagal membuat order');
+        }
+
+        const orderData = await orderResponse.json();
+
+        messageDiv.textContent = `Order berhasil dibuat dengan ID: ${orderData.order_id}`;
+        messageDiv.className = 'mt-4 font-semibold text-green-600';
+
+        // Reset form
+        orderForm.reset();
+        renderMenuItems();
+      } catch (error) {
+        messageDiv.textContent = error.message || 'Terjadi kesalahan saat membuat order.';
+        messageDiv.className = 'mt-4 font-semibold text-red-600';
+      }
+    });
+
+    // Initialize
+    fetchMenus();
+  </script>
+</body>
+</html>
