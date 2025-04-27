@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin - Order Details</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -12,37 +12,31 @@
     }
   </style>
 </head>
-<body class="bg-green-100 h-screen overflow-auto">
-  <div class="flex h-full min-h-screen">
-    <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
-      <div>
-        <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+<body class="bg-green-50 min-h-screen flex">
+  <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
+    <div>
+      <h1 class="text-2xl font-bold mb-4">Makan.in</h1>
+      <nav class="space-y-2">
         <a href="../makanan/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
         <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
-        <a href="order-details.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Order Details</a>
-        <a href="add-order.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Add Order</a>
-      </div>
-      <div class="text-center text-sm">Admin</div>
-    </aside>
+        <a href="order-details.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded text-center">Order Details</a>
+      </nav>
+    </div>
+    <div class="text-center text-sm">Admin</div>
+  </aside>
 
-    <main class="flex-1 p-8 overflow-y-auto">
-      <h1 class="text-2xl font-bold mb-4 text-green-700">Order Details</h1>
-
-      <div id="orders-container" class="space-y-6 max-w-4xl mx-auto">
-        <!-- Orders will be rendered here -->
-      </div>
-    </main>
-  </div>
+  <main class="flex-1 p-8 overflow-y-auto">
+    <h1 class="text-2xl font-bold text-green-700 mb-8">Order Details</h1>
+    <div id="orders-container" class="space-y-6"></div>
+  </main>
 
   <script>
     const ordersContainer = document.getElementById('orders-container');
 
     async function fetchOrders() {
       try {
-        const response = await fetch('http://localhost:5000/orders');
-        if (!response.ok) {
-          throw new Error('Gagal memuat data order');
-        }
+        const response = await fetch('http://localhost:5001/orders');
+        if (!response.ok) throw new Error('Gagal memuat data order');
         const orders = await response.json();
         renderOrders(orders);
       } catch (error) {
@@ -50,41 +44,73 @@
       }
     }
 
-    function renderOrders(orders) {
+    async function fetchOrderDetails(orderId) {
+      try {
+        const response = await fetch(`http://localhost:5001/orders/${orderId}`);
+        if (!response.ok) throw new Error('Gagal memuat detail order');
+        return await response.json();
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
+
+    async function renderOrders(orders) {
       ordersContainer.innerHTML = '';
       if (orders.length === 0) {
-        ordersContainer.innerHTML = '<p>Tidak ada order.</p>';
+        ordersContainer.innerHTML = '<p class="text-gray-600 text-center">Tidak ada order.</p>';
         return;
       }
 
-      orders.forEach(order => {
-        const orderDiv = document.createElement('div');
-        orderDiv.className = 'bg-white p-4 rounded shadow';
+      for (const order of orders) {
+        const details = await fetchOrderDetails(order.id);
+        if (!details) continue;
 
-        const header = document.createElement('h2');
-        header.className = 'text-lg font-semibold mb-2';
-        header.textContent = `Order ID: ${order.id} - Customer: ${order.nama_customer}`;
-        orderDiv.appendChild(header);
+        const orderCard = document.createElement('div');
+        orderCard.className = 'bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300';
 
-        const info = document.createElement('p');
-        info.textContent = `Total Harga: Rp ${order.total_harga.toLocaleString('id-ID')} | Metode Pembayaran: ${order.metode_pembayaran} | Tanggal: ${order.tanggal_pembelian}`;
-        orderDiv.appendChild(info);
+        const header = document.createElement('div');
+        header.className = 'flex justify-between items-start gap-4 mb-4';
+        header.innerHTML = `
+          <h2 class="text-xl font-semibold text-green-800">Order #${order.id}</h2>
+          <div class="flex flex-col items-end">
+            <span class="text-sm font-medium text-gray-700">Customer: ${details.nama_customer}</span>
+            <span class="text-xs text-gray-500">Tanggal: ${details.tanggal_pembelian}</span>
+          </div>
+        `;
+        orderCard.appendChild(header);
+
+        const info = document.createElement('div');
+        info.className = 'mb-6 text-gray-700';
+        info.innerHTML = `
+          <p class="text-lg">Total Harga: <strong class="text-green-600">Rp ${details.total_harga.toLocaleString('id-ID')}</strong></p>
+          <p>Metode Pembayaran: <strong class="font-medium">${details.metode_pembayaran}</strong></p>
+        `;
+        orderCard.appendChild(info);
+
+        const itemsTitle = document.createElement('h3');
+        itemsTitle.className = 'font-semibold mb-3 text-green-600 text-lg';
+        itemsTitle.textContent = 'Pesanan:';
+        orderCard.appendChild(itemsTitle);
 
         const itemsList = document.createElement('ul');
-        itemsList.className = 'mt-2 list-disc list-inside';
-
-        order.items.forEach(item => {
-          const itemLi = document.createElement('li');
-          itemLi.textContent = `${item.nama_menu} - Qty: ${item.quantity} - Harga Satuan: Rp ${item.harga_satuan.toLocaleString('id-ID')}`;
-          itemsList.appendChild(itemLi);
+        itemsList.className = 'space-y-2';
+        details.items.forEach(item => {
+          const li = document.createElement('li');
+          li.className = "flex items-center justify-between gap-4 py-1 border-b border-gray-200 last:border-none";
+          li.innerHTML = `
+            <span class="font-medium">${item.nama_menu}</span>
+            <span class="text-sm text-gray-500">x${item.quantity}</span>
+            <span class="text-green-600">Rp ${item.harga_satuan.toLocaleString('id-ID')}</span>
+          `;
+          itemsList.appendChild(li);
         });
+        orderCard.appendChild(itemsList);
 
-        orderDiv.appendChild(itemsList);
-        ordersContainer.appendChild(orderDiv);
-      });
+        ordersContainer.appendChild(orderCard);
+      }
     }
 
-    // Initialize
     fetchOrders();
   </script>
 </body>

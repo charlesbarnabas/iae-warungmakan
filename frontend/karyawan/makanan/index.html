@@ -16,7 +16,7 @@
     <div class="flex h-full">
         <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
             <div>
-                <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+                <h1 class="text-2xl font-bold mb-4">Makan.in</h1>
                 <a href="../makanan/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
                 <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
                 <div class="relative group">
@@ -64,9 +64,9 @@
                     <span>Total Harga</span>
                     <span id="cart-total-price">Rp 0</span>
                 </div>
-                <button id="goToOrderDetailsButton" class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline">
+                <a href="../checkout/add-order.html" id="goToOrderDetailsButton" class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline block text-center">
                     Lanjut →
-                </button>
+                </a>
             </div>
         </main>
     </div>
@@ -254,7 +254,7 @@
         }
 
         goToOrderDetailsButton.addEventListener('click', () => {
-            window.location.href = '../checkout/order-details.html';
+            window.location.href = '../checkout/add-order.html';
         });
 
         document.addEventListener('DOMContentLoaded', () => {

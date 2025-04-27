@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - Add Order</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karyawan - Add Order</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -70,45 +70,73 @@
     const orderForm = document.getElementById('order-form');
     const messageDiv = document.getElementById('message');
 
-    let menus = [];
+    let allMenus = []; // To store all available menus
+    let cart = JSON.parse(localStorage.getItem('cart')) || {}; // Retrieve cart from localStorage
 
-    // Fetch menu items from menu service (port 5000)
-    async function fetchMenus() {
+    // Fetch all menu items
+    async function fetchAllMenus() {
       try {
         const response = await fetch('http://localhost:5000/menus');
         if (!response.ok) {
           throw new Error('Gagal memuat menu');
         }
         const data = await response.json();
-        menus = data;
-        renderMenuItems();
+        allMenus = data;
+        renderPreFilledMenuItems(); // Call render function after fetching all menus
       } catch (error) {
         menuItemsDiv.innerHTML = '<p class="text-red-500">Gagal memuat menu.</p>';
       }
     }
 
-    // Render menu items with quantity inputs
-    function renderMenuItems() {
+    // Render menu items, pre-filling quantities from the cart
+    async function renderPreFilledMenuItems() {
       menuItemsDiv.innerHTML = '';
-      menus.forEach(menu => {
-        const div = document.createElement('div');
-        div.className = 'flex items-center space-x-4';
+      const cartItemIds = Object.keys(cart);
 
-        const label = document.createElement('label');
-        label.textContent = `${menu.nama} (Rp ${menu.harga.toLocaleString('id-ID')})`;
-        label.className = 'flex-1';
+      if (cartItemIds.length === 0) {
+        menuItemsDiv.innerHTML = '<p class="text-gray-500">Tidak ada item di keranjang.</p>';
+        return;
+      }
 
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.min = 0;
-        input.value = 0;
-        input.className = 'border border-gray-300 rounded px-2 py-1 w-20';
-        input.dataset.menuId = menu.id;
+      // Fetch details for only the items in the cart
+      for (const menuId of cartItemIds) {
+        try {
+          const response = await fetch(`http://localhost:5000/menus/${menuId}`);
+          if (!response.ok) {
+            console.error(`Gagal mengambil detail menu dengan ID: ${menuId}`);
+            continue; // Skip to the next item if fetching fails
+          }
+          const menu = await response.json();
+          const quantity = cart[menuId];
+          if (menu) {
+            const div = createMenuItemInput(menu, quantity);
+            menuItemsDiv.appendChild(div);
+          }
+        } catch (error) {
+          console.error('Terjadi kesalahan saat mengambil detail menu:', error);
+        }
+      }
+    }
 
-        div.appendChild(label);
-        div.appendChild(input);
-        menuItemsDiv.appendChild(div);
-      });
+    // Helper function to create a menu item input
+    function createMenuItemInput(menu, quantity) {
+      const div = document.createElement('div');
+      div.className = 'flex items-center space-x-4';
+
+      const label = document.createElement('label');
+      label.textContent = `${menu.nama} (Rp ${menu.harga.toLocaleString('id-ID')})`;
+      label.className = 'flex-1';
+
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = quantity;
+      input.className = 'border border-gray-300 rounded px-2 py-1 w-20';
+      input.dataset.menuId = menu.id;
+
+      div.appendChild(label);
+      div.appendChild(input);
+      return div;
     }
 
     // Submit order form
@@ -127,7 +155,6 @@
         return;
       }
 
-      // Collect order items with quantity > 0
       const orderItems = [];
       const quantityInputs = menuItemsDiv.querySelectorAll('input[type="number"]');
       quantityInputs.forEach(input => {
@@ -185,9 +212,10 @@
         messageDiv.textContent = `Order berhasil dibuat dengan ID: ${orderData.order_id}`;
         messageDiv.className = 'mt-4 font-semibold text-green-600';
 
-        // Reset form
+        // Clear the cart after successful order
+        localStorage.removeItem('cart');
         orderForm.reset();
-        renderMenuItems();
+        fetchAllMenus(); // Re-fetch and render (cart should be empty now)
       } catch (error) {
         messageDiv.textContent = error.message || 'Terjadi kesalahan saat membuat order.';
         messageDiv.className = 'mt-4 font-semibold text-red-600';
@@ -195,7 +223,7 @@
     });
 
     // Initialize
-    fetchMenus();
+    fetchAllMenus();
   </script>
 </body>
 </html>

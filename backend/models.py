@@ -1,7 +1,23 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
-db = SQLAlchemy()
+# Setup Flask
+app = Flask(__name__)
+CORS(app)
 
+# Konfigurasi Database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inisialisasi database
+db = SQLAlchemy(app)  # Initialize SQLAlchemy with the app
+app.app_context().push() #push app context
+
+# ================================
+#            MODEL
+# ================================
 class Customer(db.Model):
     __tablename__ = 'customers'
     id = db.Column(db.Integer, primary_key=True)
@@ -14,7 +30,7 @@ class Menu(db.Model):
     nama = db.Column(db.String(180), nullable=False)
     category = db.Column(db.String(50), nullable=False)
     harga = db.Column(db.Integer, nullable=False)
-    foto = db.Column(db.String(255), nullable=True)  # path file/foto menu
+    foto = db.Column(db.String(255), nullable=True)
 
 class Order(db.Model):
     __tablename__ = 'orders'
