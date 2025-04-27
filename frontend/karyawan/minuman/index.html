@@ -79,11 +79,19 @@
         const goToOrderDetailsButton = document.getElementById('goToOrderDetailsButton');
         let allMenus = [];
         let cart = JSON.parse(localStorage.getItem('cart')) || {};
+        let cartRenderedAfterMenu = false;
 
-        // Fungsi addToCart didefinisikan di scope global
         function addToCart(id, name, price) {
-            cart[id] = (cart[id] || 0) + 1;
+            console.log('Minuman: addToCart dipanggil untuk ID:', id);
+            console.log('Minuman: Cart sebelum penambahan:', JSON.stringify(cart));
+            if (cart[id]) {
+                cart[id]++;
+            } else {
+                cart[id] = 1;
+            }
             localStorage.setItem('cart', JSON.stringify(cart));
+            console.log('Minuman: Cart setelah penambahan:', JSON.stringify(cart));
+            console.log('Minuman: localStorage setelah penambahan:', localStorage.getItem('cart'));
             renderCart();
         }
 
@@ -128,7 +136,11 @@
                 `;
                 menuList.appendChild(menuCard);
             });
-            renderCart();
+            console.log('Minuman: renderMenus memanggil renderCart');
+            if (!cartRenderedAfterMenu) {
+                renderCart();
+                cartRenderedAfterMenu = true;
+            }
         }
 
         async function fetchMenus() {
@@ -139,7 +151,7 @@
                 allMenus = data.filter(menu => menu.category === "minuman");
                 renderMenus(allMenus);
             } catch (error) {
-                console.error('Gagal mengambil data menu:', error);
+                console.error('Minuman: Gagal mengambil data menu:', error);
                 menuList.innerHTML = '<p class="text-red-500">Gagal memuat daftar menu.</p>';
             }
         }
@@ -174,7 +186,7 @@
                 const data = await response.json();
                 return data;
             } catch (error) {
-                console.error('Gagal mengambil detail menu:', error);
+                console.error('Minuman: Gagal mengambil detail menu:', error);
                 return null;
             }
         }
@@ -186,13 +198,14 @@
                 delete cart[menuId];
             }
             localStorage.setItem('cart', JSON.stringify(cart));
+            console.log('Minuman: updateCartItem dipanggil, cart:', cart, 'localStorage:', localStorage.getItem('cart'));
             renderCart();
         }
 
         async function renderCart() {
             if (!cartItemsContainer || !cartTotalPriceElement) return;
 
-            cartItemsContainer.innerHTML = ''; // Memastikan kontainer direset
+            cartItemsContainer.innerHTML = '';
 
             let totalHarga = 0;
             const cartItems = Object.keys(cart);
@@ -207,7 +220,16 @@
                         if (menu) {
                             const itemTotal = menu.harga * quantity;
                             totalHarga += itemTotal;
+
+                            const itemId = `cart-item-${menuId}`;
+
+                            const existingItem = document.getElementById(itemId);
+                            if (existingItem) {
+                                existingItem.remove();
+                            }
+
                             const cartItemDiv = document.createElement('div');
+                            cartItemDiv.id = itemId;
                             cartItemDiv.className = 'flex items-center justify-between py-2 border-b border-gray-200';
                             cartItemDiv.innerHTML = `
                                 <div class="flex items-center">
@@ -224,23 +246,24 @@
                                 </div>
                                 <span class="font-semibold text-gray-800 text-sm">Rp ${itemTotal.toLocaleString('id-ID')}</span>
                             `;
+
                             cartItemsContainer.appendChild(cartItemDiv);
                         }
                     } catch (error) {
                         console.error('Gagal memproses item keranjang:', error);
-                        // Mungkin tambahkan logika untuk menampilkan pesan error kepada pengguna
                     }
                 }
             }
             cartTotalPriceElement.textContent = `Rp ${totalHarga.toLocaleString('id-ID')}`;
         }
 
-        goToOrderDetailsButton.addEventListener('click', () => {
-            window.location.href = '../checkout/order-details.html';
-        });
 
-        document.addEventListener('DOMContentLoaded', renderCart);
-        document.addEventListener('DOMContentLoaded', fetchMenus);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Minuman: DOMContentLoaded memanggil renderCart');
+            renderCart();
+            fetchMenus();
+            cartRenderedAfterMenu = false; 
+        });
     </script>
 </body>
 </html>

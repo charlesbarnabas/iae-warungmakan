@@ -80,10 +80,17 @@
         let allMenus = [];
         let cart = JSON.parse(localStorage.getItem('cart')) || {};
 
-        // Fungsi addToCart didefinisikan di scope global
         function addToCart(id, name, price) {
-            cart[id] = (cart[id] || 0) + 1;
+            console.log('Makanan: addToCart dipanggil untuk ID:', id);
+            console.log('Makanan: Cart sebelum penambahan:', JSON.stringify(cart));
+            if (cart[id]) {
+                cart[id]++;
+            } else {
+                cart[id] = 1;
+            }
             localStorage.setItem('cart', JSON.stringify(cart));
+            console.log('Makanan: Cart setelah penambahan:', JSON.stringify(cart));
+            console.log('Makanan: localStorage setelah penambahan:', localStorage.getItem('cart'));
             renderCart();
         }
 
@@ -128,6 +135,7 @@
                 `;
                 menuList.appendChild(menuCard);
             });
+            console.log('Makanan: renderMenus memanggil renderCart');
             renderCart();
         }
 
@@ -139,7 +147,7 @@
                 allMenus = data.filter(menu => menu.category === "makanan");
                 renderMenus(allMenus);
             } catch (error) {
-                console.error('Gagal mengambil data menu:', error);
+                console.error('Makanan: Gagal mengambil data menu:', error);
                 menuList.innerHTML = '<p class="text-red-500">Gagal memuat daftar menu.</p>';
             }
         }
@@ -174,7 +182,7 @@
                 const data = await response.json();
                 return data;
             } catch (error) {
-                console.error('Gagal mengambil detail menu:', error);
+                console.error('Makanan: Gagal mengambil detail menu:', error);
                 return null;
             }
         }
@@ -186,13 +194,14 @@
                 delete cart[menuId];
             }
             localStorage.setItem('cart', JSON.stringify(cart));
+            console.log('Makanan: updateCartItem dipanggil, cart:', cart, 'localStorage:', localStorage.getItem('cart'));
             renderCart();
         }
 
         async function renderCart() {
             if (!cartItemsContainer || !cartTotalPriceElement) return;
 
-            cartItemsContainer.innerHTML = ''; // Ini adalah baris yang memastikan kontainer direset
+            cartItemsContainer.innerHTML = '';
 
             let totalHarga = 0;
             const cartItems = Object.keys(cart);
@@ -207,7 +216,16 @@
                         if (menu) {
                             const itemTotal = menu.harga * quantity;
                             totalHarga += itemTotal;
+
+                            const itemId = `cart-item-${menuId}`;
+
+                            const existingItem = document.getElementById(itemId);
+                            if (existingItem) {
+                                existingItem.remove();
+                            }
+
                             const cartItemDiv = document.createElement('div');
+                            cartItemDiv.id = itemId;
                             cartItemDiv.className = 'flex items-center justify-between py-2 border-b border-gray-200';
                             cartItemDiv.innerHTML = `
                                 <div class="flex items-center">
@@ -224,11 +242,11 @@
                                 </div>
                                 <span class="font-semibold text-gray-800 text-sm">Rp ${itemTotal.toLocaleString('id-ID')}</span>
                             `;
+
                             cartItemsContainer.appendChild(cartItemDiv);
                         }
                     } catch (error) {
                         console.error('Gagal memproses item keranjang:', error);
-                        // Mungkin tambahkan logika untuk menampilkan pesan error kepada pengguna
                     }
                 }
             }
@@ -239,8 +257,11 @@
             window.location.href = '../checkout/order-details.html';
         });
 
-        document.addEventListener('DOMContentLoaded', renderCart);
-        document.addEventListener('DOMContentLoaded', fetchMenus);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Makanan: DOMContentLoaded memanggil renderCart');
+            renderCart();
+            fetchMenus();
+        });
     </script>
 </body>
 </html>
