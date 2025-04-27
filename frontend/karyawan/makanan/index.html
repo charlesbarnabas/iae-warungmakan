@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Karyawan - Daftar Makanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-green-100 h-screen overflow-hidden">
+    <div class="flex h-full">
+        <aside class="bg-[#52B062] text-white w-64 flex flex-col justify-between p-4">
+            <div>
+                <h1 class="text-xl font-bold mb-4">Makan.in</h1>
+                <a href="../makanan/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Makanan</a>
+                <a href="../minuman/index.html" class="block bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 text-center">Minuman</a>
+                <div class="relative group">
+                    <button id="checkoutDropdownButton" class="w-full bg-[#00FF51] hover:bg-lime-400 text-white font-bold py-2 px-4 rounded mb-2 relative">
+                        <span class="block text-center w-full">Checkout</span>
+                        <svg class="w-4 h-4 absolute right-4 top-1/2 transform -translate-y-1/2 group-hover:rotate-180 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="checkoutDropdownMenu" class="hidden absolute left-0 w-full bg-[#00FF51] mt-2 rounded shadow-lg overflow-hidden z-10">
+                        <a href="../checkout/order-details.html" class="block px-4 py-2 hover:bg-lime-400 text-white text-center font-bold">Order Details</a>
+                    </div>
+                </div>
+            </div>
+        <div class="text-center text-sm">Karyawan</div>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+                <h1 class="text-2xl font-bold mb-4 text-green-700">Makanan</h1>
+                <div class="mb-4 relative w-full md:w-1/2">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z" />
+                        </svg>
+                    </span>
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Cari Makanan..."
+                        class="pl-10 pr-4 py-2 rounded border border-gray-300 w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                </div>
+                <div id="menu-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    </div>
+            </div>
+
+            <div class="bg-white shadow-md rounded-lg p-6 sticky top-4 h-fit">
+                <h2 class="text-xl font-semibold mb-4">Pesanan</h2>
+                <div id="cart-items">
+                    <p class="text-gray-500">Keranjang masih kosong.</p>
+                </div>
+                <hr class="my-4">
+                <div class="flex justify-between font-semibold text-gray-700 mb-2">
+                    <span>Total Harga</span>
+                    <span id="cart-total-price">Rp 0</span>
+                </div>
+                <button id="goToOrderDetailsButton" class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Lanjut →
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const menuList = document.getElementById('menu-list');
+        const searchInput = document.getElementById('search-input');
+        const cartItemsContainer = document.getElementById('cart-items');
+        const cartTotalPriceElement = document.getElementById('cart-total-price');
+        const goToOrderDetailsButton = document.getElementById('goToOrderDetailsButton');
+        let allMenus = [];
+        let cart = JSON.parse(localStorage.getItem('cart')) || {};
+
+        // Fungsi addToCart didefinisikan di scope global
+        function addToCart(id, name, price) {
+            cart[id] = (cart[id] || 0) + 1;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function showLoadingSkeleton() {
+            menuList.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const skeletonCard = document.createElement('div');
+                skeletonCard.className = 'bg-white p-4 rounded-md shadow-md animate-pulse';
+                skeletonCard.innerHTML = `
+                    <div class="bg-gray-300 h-32 w-full rounded mb-4"></div>
+                    <div class="h-4 bg-gray-300 rounded mb-2"></div>
+                    <div class="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
+                    <div class="flex space-x-2">
+                        <div class="h-6 bg-gray-300 rounded w-16"></div>
+                        <div class="h-6 bg-gray-300 rounded w-16"></div>
+                    </div>
+                `;
+                menuList.appendChild(skeletonCard);
+            }
+        }
+
+        function renderMenus(menus) {
+            menuList.innerHTML = '';
+            if (menus.length === 0) {
+                menuList.innerHTML = '<p class="text-gray-600">Menu tidak ditemukan.</p>';
+                return;
+            }
+
+            menus.forEach(menu => {
+                const menuCard = document.createElement('div');
+                menuCard.className = 'bg-white shadow-md rounded-md p-4 flex flex-col justify-between';
+                menuCard.innerHTML = `
+                    <img src="http://127.0.0.1:5000${menu.foto}" alt="${menu.nama}" class="w-full h-32 object-cover rounded-md mb-2">
+                    <h3 class="font-semibold text-lg text-green-600">${menu.nama}</h3>
+                    <p class="text-gray-700">Rp ${menu.harga.toLocaleString('id-ID')}</p>
+                    <div class="mt-2 flex justify-between items-center">
+                        <button class="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-sm"
+                                onclick="addToCart('${menu.id}', '${menu.nama}', ${menu.harga})">
+                            Pesan
+                        </button>
+                    </div>
+                `;
+                menuList.appendChild(menuCard);
+            });
+            renderCart();
+        }
+
+        async function fetchMenus() {
+            showLoadingSkeleton();
+            try {
+                const response = await fetch('http://127.0.0.1:5000/menus');
+                const data = await response.json();
+                allMenus = data.filter(menu => menu.category === "makanan");
+                renderMenus(allMenus);
+            } catch (error) {
+                console.error('Gagal mengambil data menu:', error);
+                menuList.innerHTML = '<p class="text-red-500">Gagal memuat daftar menu.</p>';
+            }
+        }
+
+        function filterMenus(keyword) {
+            const filtered = allMenus.filter(menu =>
+                menu.nama.toLowerCase().includes(keyword.toLowerCase())
+            );
+            renderMenus(filtered);
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            filterMenus(e.target.value);
+        });
+
+        const dropdownButton = document.getElementById('checkoutDropdownButton');
+        const dropdownMenu = document.getElementById('checkoutDropdownMenu');
+
+        dropdownButton.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+
+        async function fetchMenuDetails(menuId) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/menus/${menuId}`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Gagal mengambil detail menu:', error);
+                return null;
+            }
+        }
+
+        async function updateCartItem(menuId, quantity) {
+            if (quantity > 0) {
+                cart[menuId] = quantity;
+            } else {
+                delete cart[menuId];
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        async function renderCart() {
+            if (!cartItemsContainer || !cartTotalPriceElement) return;
+
+            cartItemsContainer.innerHTML = ''; // Ini adalah baris yang memastikan kontainer direset
+
+            let totalHarga = 0;
+            const cartItems = Object.keys(cart);
+
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-gray-500">Keranjang masih kosong.</p>';
+            } else {
+                for (const menuId of cartItems) {
+                    const quantity = cart[menuId];
+                    try {
+                        const menu = await fetchMenuDetails(menuId);
+                        if (menu) {
+                            const itemTotal = menu.harga * quantity;
+                            totalHarga += itemTotal;
+                            const cartItemDiv = document.createElement('div');
+                            cartItemDiv.className = 'flex items-center justify-between py-2 border-b border-gray-200';
+                            cartItemDiv.innerHTML = `
+                                <div class="flex items-center">
+                                    <img src="http://127.0.0.1:5000${menu.foto}" alt="${menu.nama}" class="w-12 h-12 object-cover rounded mr-2">
+                                    <div>
+                                        <h3 class="font-semibold text-sm text-gray-800">${menu.nama}</h3>
+                                        <p class="text-gray-600 text-xs">Rp ${menu.harga.toLocaleString('id-ID')}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700 focus:outline-none text-xs" onclick="updateCartItem('${menuId}', ${quantity} - 1)">-</button>
+                                    <span class="text-sm">${quantity}</span>
+                                    <button class="text-gray-500 hover:text-gray-700 focus:outline-none text-xs" onclick="updateCartItem('${menuId}', ${quantity} + 1)">+</button>
+                                </div>
+                                <span class="font-semibold text-gray-800 text-sm">Rp ${itemTotal.toLocaleString('id-ID')}</span>
+                            `;
+                            cartItemsContainer.appendChild(cartItemDiv);
+                        }
+                    } catch (error) {
+                        console.error('Gagal memproses item keranjang:', error);
+                        // Mungkin tambahkan logika untuk menampilkan pesan error kepada pengguna
+                    }
+                }
+            }
+            cartTotalPriceElement.textContent = `Rp ${totalHarga.toLocaleString('id-ID')}`;
+        }
+
+        goToOrderDetailsButton.addEventListener('click', () => {
+            window.location.href = '../checkout/order-details.html';
+        });
+
+        document.addEventListener('DOMContentLoaded', renderCart);
+        document.addEventListener('DOMContentLoaded', fetchMenus);
+    </script>
+</body>
+</html>
