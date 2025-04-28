@@ -83,25 +83,25 @@
         const info = document.createElement('div');
         info.className = 'mb-6 text-gray-700';
         info.innerHTML = `
-          <p class="text-lg">Total Harga: <strong class="text-green-600">Rp ${details.total_harga.toLocaleString('id-ID')}</strong></p>
-          <p>Metode Pembayaran: <strong class="font-medium">${details.metode_pembayaran}</strong></p>
+          <p class="text-lg">Total Harga : <strong class="text-green-600">Rp ${details.total_harga.toLocaleString('id-ID')}</strong></p>
+          <p>Metode Pembayaran : <strong class="font-medium">${details.metode_pembayaran}</strong></p>
         `;
         orderCard.appendChild(info);
 
         const itemsTitle = document.createElement('h3');
         itemsTitle.className = 'font-semibold mb-3 text-green-600 text-lg';
-        itemsTitle.textContent = 'Pesanan:';
+        itemsTitle.textContent = 'Pesanan :';
         orderCard.appendChild(itemsTitle);
 
         const itemsList = document.createElement('ul');
         itemsList.className = 'space-y-2';
         details.items.forEach(item => {
           const li = document.createElement('li');
-          li.className = "flex items-center justify-between gap-4 py-1 border-b border-gray-200 last:border-none";
+          li.className = "grid grid-cols-3 items-center py-1 border-b border-gray-200 last:border-none text-center";
           li.innerHTML = `
-            <span class="font-medium">${item.nama_menu}</span>
+            <span class="font-medium text-left">${item.nama_menu}</span>
             <span class="text-sm text-gray-500">x${item.quantity}</span>
-            <span class="text-green-600">Rp ${item.harga_satuan.toLocaleString('id-ID')}</span>
+            <span class="text-green-600 text-right">Rp ${item.harga_satuan.toLocaleString('id-ID')}</span>
           `;
           itemsList.appendChild(li);
         });

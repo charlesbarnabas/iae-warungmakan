@@ -44,6 +44,11 @@
         </div>
 
         <div class="mb-4">
+          <h2 class="font-semibold mb-2">Total Harga:</h2>
+          <div id="total-price" class="font-bold text-red-700">Rp 0</div>
+        </div>
+
+        <div class="mb-4">
           <label for="payment-method" class="block font-semibold mb-2">Metode Pembayaran:</label>
           <select id="payment-method" name="payment-method" class="border border-gray-300 rounded px-3 py-2 w-full" required>
             <option value="">Pilih Metode Pembayaran</option>
@@ -116,6 +121,23 @@
           console.error('Terjadi kesalahan saat mengambil detail menu:', error);
         }
       }
+    updateTotalPrice();
+    }
+
+
+    function updateTotalPrice() {
+      let total = 0;
+      const quantityInputs = menuItemsDiv.querySelectorAll('input[type="number"]');
+      quantityInputs.forEach(input => {
+        const quantity = parseInt(input.value);
+        const menuId = input.dataset.menuId;
+        const menu = allMenus.find(item => item.id == menuId);
+        if (menu && quantity > 0) {
+          total += menu.harga * quantity;
+        }
+      });
+      const totalPriceDiv = document.getElementById('total-price');
+      totalPriceDiv.textContent = `Rp ${total.toLocaleString('id-ID')}`;
     }
 
     // Helper function to create a menu item input
@@ -125,14 +147,16 @@
 
       const label = document.createElement('label');
       label.textContent = `${menu.nama} (Rp ${menu.harga.toLocaleString('id-ID')})`;
-      label.className = 'flex-1';
+      label.className = 'flex-1 text-green-700 font-bold';
 
       const input = document.createElement('input');
       input.type = 'number';
       input.min = 0;
       input.value = quantity;
-      input.className = 'border border-gray-300 rounded px-2 py-1 w-20';
+      input.className = 'border border-gray-300 rounded px-2 py-1 w-20 font-bold text-red-700';
       input.dataset.menuId = menu.id;
+
+      input.addEventListener('input', updateTotalPrice);
 
       div.appendChild(label);
       div.appendChild(input);
