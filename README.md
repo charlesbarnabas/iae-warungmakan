@@ -15,6 +15,7 @@ Sebelum menjalankan proyek ini, pastikan Anda telah menginstal perangkat lunak b
 * **pip:** Package installer untuk Python (biasanya sudah terinstal dengan Python).
 * **Git:** Untuk melakukan clone repository. Anda dapat mengunduhnya dari [https://git-scm.com/downloads](https://git-scm.com/downloads)
 * **Dependensi Backend:** Proyek backend ini kemungkinan memiliki dependensi spesifik. Pastikan Anda telah menginstal semua dependensi yang diperlukan menggunakan file `requirements.txt` (jika ada).
+* **Postman (Opsional):** Untuk menguji API backend Anda, terutama pada port 5000 dan 5001. Anda dapat mengunduhnya dari https://www.postman.com/downloads/. Ini berguna untuk memastikan backend berfungsi dengan benar sebelum menjalankan frontend.
 
 ## Instalasi dan Menjalankan Proyek
 
