@@ -1,4 +1,4 @@
-# makan.in
+# Makan.in
 
 [![Lisensi](https://img.shields.io/badge/Lisensi-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -23,11 +23,9 @@ Berikut adalah langkah-langkah untuk menginstal dan menjalankan proyek **makan.i
 
     Buka terminal atau command prompt Anda dan jalankan perintah berikut untuk meng-clone repository proyek ke komputer Anda:
 
-    ```bash
-    git clone <link-repo-anda>
     ```
-
-    Ganti `<link-repo-anda>` dengan URL repository proyek **makan.in**.
+    git clone https://github.com/charlesbarnabas/iae-warungmakan.git
+    ```
 
 2.  **Menjalankan Backend**
 
