@@ -23,30 +23,30 @@ Berikut adalah langkah-langkah untuk menginstal dan menjalankan proyek **makan.i
 
     Buka terminal atau command prompt Anda dan jalankan perintah berikut untuk meng-clone repository proyek ke komputer Anda:
 
-    ```
+    
     git clone https://github.com/charlesbarnabas/iae-warungmakan.git
-    ```
+    
 
 2.  **Menjalankan Backend**
 
     a.  Masuk ke direktori backend proyek:
 
-        ```
+        
         cd backend
-        ```
+        
 
     b.  Jika terdapat file `requirements.txt`, instal dependensi backend terlebih dahulu:
 
-        ```
+        
         pip install -r requirements.txt
-        ```
+        
 
     c.  Jalankan service backend:
 
-        ```
+        
         python customer_order_services.py
         python menu_service.py
-        ```
+        
 
         Pastikan kedua service backend berjalan tanpa error. Anda mungkin akan melihat pesan log atau indikasi bahwa server sedang berjalan pada port tertentu.
 
@@ -56,23 +56,23 @@ Berikut adalah langkah-langkah untuk menginstal dan menjalankan proyek **makan.i
 
     b.  Masuk ke direktori frontend proyek:
 
-        ```
+        
         cd fe
-        ```
+        
 
     c.  Jalankan server HTTP sederhana dari Python untuk melayani file frontend:
 
-        ```
+        
         python -m http.server 8000
-        ```
+        
 
         Perintah ini akan memulai server HTTP lokal pada port 8000.
 
     d.  Buka browser web Anda dan kunjungi alamat berikut untuk mengakses frontend **makan.in**:
 
-        ```
+        
         http://localhost:8000
-        ```
+        
 
         Anda akan melihat antarmuka pengguna untuk transaksi kasir dan mungkin juga tautan atau area untuk akses pengelolaan menu oleh admin (tergantung implementasi frontend).
 
