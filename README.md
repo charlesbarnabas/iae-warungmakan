@@ -31,19 +31,19 @@ Berikut adalah langkah-langkah untuk menginstal dan menjalankan proyek **makan.i
 
     a.  Masuk ke direktori backend proyek:
 
-        ```bash
+        ```
         cd backend
         ```
 
     b.  Jika terdapat file `requirements.txt`, instal dependensi backend terlebih dahulu:
 
-        ```bash
+        ```
         pip install -r requirements.txt
         ```
 
     c.  Jalankan service backend:
 
-        ```bash
+        ```
         python customer_order_services.py
         python menu_service.py
         ```
@@ -56,13 +56,13 @@ Berikut adalah langkah-langkah untuk menginstal dan menjalankan proyek **makan.i
 
     b.  Masuk ke direktori frontend proyek:
 
-        ```bash
+        ```
         cd fe
         ```
 
     c.  Jalankan server HTTP sederhana dari Python untuk melayani file frontend:
 
-        ```bash
+        ```
         python -m http.server 8000
         ```
 
