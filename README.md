@@ -3,7 +3,7 @@
 [![Lisensi](https://img.shields.io/badge/Lisensi-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Deskripsi Proyek
-![image](https://github.com/user-attachments/assets/5bd0a5c0-a570-49f0-98de-c1c347a617b3)
+![image](https://github.com/user-attachments/assets/bf70b01d-4a4f-4506-8ece-ccf5cc4aa984)
 
 **Makan.in** adalah aplikasi web sederhana yang dirancang untuk memfasilitasi transaksi kasir dan pengelolaan menu. Aplikasi ini memungkinkan pengguna untuk melakukan pemesanan, mencatat pembayaran, dan menghasilkan laporan transaksi. Di sisi administrasi, aplikasi ini menyediakan fitur untuk mengelola daftar menu, termasuk menambah, mengedit, dan menghapus item menu beserta detail harganya.
 
